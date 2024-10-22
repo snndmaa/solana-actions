@@ -4,6 +4,7 @@ import {
   ActionPostResponse,
   ACTIONS_CORS_HEADERS,
   createPostResponse,
+  createActionHeaders,
   MEMO_PROGRAM_ID,
 } from '@solana/actions';
 import {
@@ -14,6 +15,10 @@ import {
   Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
+
+// create the standard headers for this route (including CORS)
+const headers = createActionHeaders();
+
 export const GET = (req: Request) => {
   const payload: ActionGetResponse = {
     icon: new URL('/sample-logo.webp', new URL(req.url).origin).toString(),
@@ -23,11 +28,13 @@ export const GET = (req: Request) => {
   };
 
   return Response.json(payload, {
-    headers: ACTIONS_CORS_HEADERS,
+    headers,
   });
 };
 
-export const OPTIONS = GET;
+// DO NOT FORGET TO INCLUDE THE `OPTIONS` HTTP METHOD
+// THIS WILL ENSURE CORS WORKS FOR BLINKS
+export const OPTIONS = async () => Response.json(null, { headers });
 
 export const POST = async (req: Request) => {
   try {
@@ -66,6 +73,7 @@ export const POST = async (req: Request) => {
     ).blockhash;
 
     const payload: ActionPostResponse = await createPostResponse({
+      // @ts-expect-error type error
       fields: {
         transaction,
       },
